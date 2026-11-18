@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ImageSharp.Textures</AssemblyName>
+    <AssemblyTitle>ImageSharp.Textures</AssemblyTitle>
+    <RootNamespace>ImageSharp.Textures</RootNamespace>
+    <PackageId>ImageSharp.Textures</PackageId>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">https://github.com/zznty/ImageSharp.Textures</RepositoryUrl>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <PackageTags>Texture Surface DDS KTX KTX2 DXT1 BC1 BC4 BC5 BC7 ImageSharp</PackageTags>
+    <Description>A texture loading, editing, and encoding library for ImageSharp v4 written in C#.</Description>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.2.0-compat" />
+  </ItemGroup>
+
+</Project>

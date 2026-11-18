@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <SolutionDirectory>$(MSBuildThisFileDirectory)</SolutionDirectory>
+    <ProjectCategory Condition="'$(ProjectCategory)' == ''">other</ProjectCategory>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <UseUpdatedMemorySafetyRules>true</UseUpdatedMemorySafetyRules>
+    <Features>strict;IOperation;updated-memory-safety-rules</Features>
+    <HighEntropyVA>true</HighEntropyVA>
+    <NeutralLanguage>en</NeutralLanguage>
+    <OverwriteReadOnlyFiles>true</OverwriteReadOnlyFiles>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' OR '$(ImplicitUsings)' == 'true'">
+    <Using Include="SixLabors.ImageSharp" />
+    <Using Include="SixLabors.ImageSharp.PixelFormats" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BaseArtifactsPath>$(SolutionDirectory)artifacts/</BaseArtifactsPath>
+    <BaseArtifactsPathSuffix>$(ProjectCategory)/$(MSBuildProjectName)</BaseArtifactsPathSuffix>
+    <BaseIntermediateOutputPath>$(BaseArtifactsPath)obj/$(BaseArtifactsPathSuffix)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(BaseArtifactsPath)bin/$(BaseArtifactsPathSuffix)/</BaseOutputPath>
+    <PackageOutputPath>$(BaseArtifactsPath)pkg/$(BaseArtifactsPathSuffix)/$(Configuration)/</PackageOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+
+</Project>

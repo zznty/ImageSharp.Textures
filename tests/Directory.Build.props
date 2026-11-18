@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <ProjectCategory>tests</ProjectCategory>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS1591;CA1707</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="xunit" Version="2.9.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" IsImplicitlyDefined="true" />
+    <Using Include="Xunit" Condition="'$(ImplicitUsings)' == 'enable' OR '$(ImplicitUsings)' == 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\ImageSharp.Textures\ImageSharp.Textures.csproj" />
+  </ItemGroup>
+
+</Project>

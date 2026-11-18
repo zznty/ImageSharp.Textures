@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ImageSharp.Textures/ImageSharp.Textures.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ImageSharp.Textures.Benchmarks/ImageSharp.Textures.Benchmarks.csproj" />
+    <Project Path="tests/ImageSharp.Textures.Parity.Tests/ImageSharp.Textures.Parity.Tests.csproj" />
+    <Project Path="tests/ImageSharp.Textures.Tests/ImageSharp.Textures.Tests.csproj" />
+  </Folder>
+</Solution>

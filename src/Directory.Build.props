@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <ProjectCategory>src</ProjectCategory>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">1.0.0</VersionPrefix>
+    <VersionPrefix Condition="'$(PackageVersion)' != ''">$(PackageVersion)</VersionPrefix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(PackageVersion)' == ''">preview.1</VersionSuffix>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ImageSharp.Textures.Benchmarks" />
+    <InternalsVisibleTo Include="ImageSharp.Textures.Parity.Tests" />
+    <InternalsVisibleTo Include="ImageSharp.Textures.Tests" />
+  </ItemGroup>
+
+</Project>

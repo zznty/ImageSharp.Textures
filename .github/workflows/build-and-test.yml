@@ -1,0 +1,144 @@
+name: Build
+
+env:
+    TEXCONV_COMMIT: 40b28a07e760a145e8677fb65b5e1ffb7e712e48
+
+on:
+    push:
+        branches:
+            - master
+        tags:
+            - "v*"
+    pull_request:
+        branches:
+            - master
+jobs:
+    Build:
+        strategy:
+            matrix:
+                options:
+                    - os: ubuntu-latest
+                      framework: net10.0
+                      runtime: -x64
+                      codecov: false
+                    - os: macos-latest
+                      framework: net10.0
+                      runtime: -x64
+                      codecov: false
+                    - os: windows-latest
+                      framework: net10.0
+                      runtime: -x64
+                      codecov: false
+
+        runs-on: ${{matrix.options.os}}
+        if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+        steps:
+            - name: Git Config
+              shell: bash
+              run: |
+                git config --global core.autocrlf false
+                git config --global core.longpaths true
+
+            - name: Git Checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 0
+
+            - name: Setup NuGet Cache
+              uses: actions/cache@v6
+              id: nuget-cache
+              with:
+                  path: ~/.nuget
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets') }}
+                  restore-keys: ${{ runner.os }}-nuget-
+
+            - name: DotNet Setup
+              uses: actions/setup-dotnet@v6
+
+            - name: Build
+              shell: pwsh
+              run: ./ci-build.ps1 "${{matrix.options.framework}}"
+              env:
+                NuGetAudit: false
+
+            - name: Test
+              shell: pwsh
+              run: ./ci-test.ps1 "${{matrix.options.os}}" "${{matrix.options.framework}}" "${{matrix.options.runtime}}" "${{matrix.options.codecov}}"
+              env:
+                  XUNIT_PATH: .\tests\ImageSharp.Textures.Tests
+                  NuGetAudit: false
+
+    Parity:
+        needs: [Build]
+
+        runs-on: ubuntu-latest
+        if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+        steps:
+            - name: Git Config
+              shell: bash
+              run: |
+                git config --global core.autocrlf false
+                git config --global core.longpaths true
+
+            - name: Git Checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 0
+
+            - name: DotNet Setup
+              uses: actions/setup-dotnet@v6
+
+            - name: Setup NuGet Cache
+              uses: actions/cache@v6
+              id: nuget-cache
+              with:
+                  path: ~/.nuget
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets') }}
+                  restore-keys: ${{ runner.os }}-nuget-
+
+            - name: Restore texconv Cache
+              uses: actions/cache@v6
+              id: texconv-cache
+              with:
+                  path: artifacts/texconv
+                  key: ${{ runner.os }}-texconv-${{ env.TEXCONV_COMMIT }}-v1
+
+            - name: Build texconv
+              shell: bash
+              run: ./scripts/build-texconv.sh
+
+            - name: Run parity tests
+              shell: bash
+              run: dotnet test tests/ImageSharp.Textures.Parity.Tests -c Release -f net10.0
+              env:
+                  NuGetAudit: false
+                  TEXCONV_PATH: ${{ github.workspace }}/artifacts/texconv/texconv
+
+            - name: Upload parity output on failure
+              uses: actions/upload-artifact@v7
+              if: failure()
+              with:
+                  name: parity_output_${{ runner.os }}
+                  path: artifacts/parity/
+
+    Pack:
+        needs: [Build]
+
+        runs-on: ubuntu-latest
+        if: |
+            github.event_name == 'push' &&
+            (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                fetch-depth: 0
+
+            - name: DotNet Setup
+              uses: actions/setup-dotnet@v6
+
+            - name: Pack
+              shell: pwsh
+              run: ./ci-pack.ps1
