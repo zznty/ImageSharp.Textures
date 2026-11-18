@@ -14,7 +14,7 @@
     <Description>A texture loading, editing, and encoding library for ImageSharp v4 written in C#.</Description>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>Nullable</WarningsAsErrors>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

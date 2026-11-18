@@ -100,6 +100,16 @@ internal sealed class DdsEncoderCore
         using IMemoryOwner<byte> buffer = configuration.ImageSharpConfiguration.MemoryAllocator.Allocate<byte>(length);
         Span<byte> destination = buffer.Memory.Span[..length];
 
+        if (surface.TexelFormat == TexelFormat.R8G8B8A8_UNorm
+            && targetFormat is TexelFormat.Bc7_UNorm or TexelFormat.Bc7_UnormSrgb
+            && encodingOptions.Bc7HardwareEncoder is { } hardwareEncoder
+            && hardwareEncoder.TryEncode(surface.GetPayload(), destination, surface.Width, surface.Height,
+                encodingOptions.Bc7Quality))
+        {
+            stream.Write(destination);
+            return;
+        }
+
         // Conversions between texel formats with different channel semantics always travel through RGBA,
         // and the texture itself is left untouched.
         using Image<Rgba32> image = surface.ToImage<Rgba32>();
@@ -107,7 +117,11 @@ internal sealed class DdsEncoderCore
             TexelFormatRegistry.GetOperations(targetFormat),
             image,
             destination,
-            new BcEncodeOptions(encodingOptions.Bc1AlphaThreshold, encodingOptions.Bc7Quality));
+            new BcEncodeOptions(
+                encodingOptions.Bc1AlphaThreshold,
+                encodingOptions.Bc7Quality,
+                encodingOptions.MaxDegreeOfParallelism,
+                encodingOptions.Bc7HardwareEncoder));
         stream.Write(destination);
     }
 

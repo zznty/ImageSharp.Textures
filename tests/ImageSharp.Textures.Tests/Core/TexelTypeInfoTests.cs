@@ -26,8 +26,7 @@ public class TexelTypeInfoTests
                 TexelComponentInterpretation.UNorm,
                 TexelComponentInterpretation.SRgbUNorm,
                 TexelComponentInterpretation.UNorm
-            ],
-            0);
+            ]);
 
         Assert.Equal(4, info.ComponentCount);
         Assert.Equal(0, info.Padding);

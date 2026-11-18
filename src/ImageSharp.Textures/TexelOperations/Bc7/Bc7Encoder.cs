@@ -85,6 +85,134 @@ internal static class Bc7Encoder
         }
     }
 
+    /// <summary>
+    ///     Encodes <paramref name="rgbaSource" /> (tightly packed RGBA32) into BC7 blocks across multiple CPU threads.
+    /// </summary>
+    /// <remarks>
+    ///     Each 4x4 block is independent, so the encoded output is bit-for-bit identical to <see cref="Encode" />.
+    /// </remarks>
+    /// <param name="rgbaSource">Source pixels, <c>width * height * 4</c> bytes, top-left origin.</param>
+    /// <param name="dest">Destination blocks; at least <see cref="GetEncodedByteCount" /> bytes.</param>
+    /// <param name="width">Source width in pixels.</param>
+    /// <param name="height">Source height in pixels.</param>
+    /// <param name="quality">Mode search to run.</param>
+    /// <param name="maxDegreeOfParallelism">Maximum worker threads, or -1 for all available processors.</param>
+    public static void EncodeParallel(
+        ReadOnlyMemory<byte> rgbaSource,
+        Memory<byte> dest,
+        int width,
+        int height,
+        Bc7EncodingQuality quality,
+        int maxDegreeOfParallelism = -1)
+    {
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be positive.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be positive.");
+        }
+
+        if (quality is not (Bc7EncodingQuality.Quick or Bc7EncodingQuality.Default))
+        {
+            throw new ArgumentOutOfRangeException(nameof(quality), quality, "Unknown BC7 encoding quality.");
+        }
+
+        long pixelBytes = (long)width * height * 4;
+        if (rgbaSource.Length < pixelBytes)
+        {
+            throw new ArgumentException("Source is smaller than width * height * 4 bytes.", nameof(rgbaSource));
+        }
+
+        int blocksX = (width + 3) >> 2;
+        int blocksY = (height + 3) >> 2;
+        int required = blocksX * blocksY * BlockBytes;
+        if (dest.Length < required)
+        {
+            throw new ArgumentException("Destination is smaller than the BC7 surface.", nameof(dest));
+        }
+
+        int totalBlocks = blocksX * blocksY;
+        int workers = maxDegreeOfParallelism <= 0 ? Environment.ProcessorCount : maxDegreeOfParallelism;
+        if (workers == 1 || totalBlocks <= 1)
+        {
+            Encode(rgbaSource.Span, dest.Span, width, height, quality);
+            return;
+        }
+
+        int workerCount = Math.Min(workers, totalBlocks);
+        ParallelOptions parallelOptions = new() { MaxDegreeOfParallelism = workerCount };
+
+        bool quick = quality == Bc7EncodingQuality.Quick;
+        int nextIndex = -1;
+
+        if (blocksY >= workerCount)
+        {
+            Parallel.For(
+                0,
+                workerCount,
+                parallelOptions,
+                _ =>
+                {
+                    ReadOnlySpan<byte> srcSpan = rgbaSource.Span;
+                    Span<byte> dstSpan = dest.Span;
+                    Span<byte> byteScratch = stackalloc byte[Bc7Scratch.ByteCount];
+                    Span<int> intScratch = stackalloc int[Bc7Scratch.IntCount];
+                    Span<float> floatScratch = stackalloc float[Bc7Scratch.FloatCount];
+                    Span<Vector256<int>> invariantScratch = stackalloc Vector256<int>[16];
+                    Span<byte> blockPixels = stackalloc byte[16 * 4];
+                    Span<int> pixelIndexMap = stackalloc int[16];
+
+                    Bc7Scratch scratch = new(byteScratch, intScratch, floatScratch, invariantScratch);
+                    Bc7BlockEncoder encoder = new(scratch, quick);
+
+                    int by;
+                    while ((by = Interlocked.Increment(ref nextIndex)) < blocksY)
+                    {
+                        int rowBlockBase = by * blocksX;
+                        for (int bx = 0; bx < blocksX; bx++)
+                        {
+                            FillBlock(srcSpan, width, height, bx, by, blockPixels, pixelIndexMap);
+                            encoder.EncodeBlock(blockPixels,
+                                dstSpan.Slice((rowBlockBase + bx) * BlockBytes, BlockBytes));
+                        }
+                    }
+                });
+        }
+        else
+        {
+            Parallel.For(
+                0,
+                workerCount,
+                parallelOptions,
+                _ =>
+                {
+                    ReadOnlySpan<byte> srcSpan = rgbaSource.Span;
+                    Span<byte> dstSpan = dest.Span;
+                    Span<byte> byteScratch = stackalloc byte[Bc7Scratch.ByteCount];
+                    Span<int> intScratch = stackalloc int[Bc7Scratch.IntCount];
+                    Span<float> floatScratch = stackalloc float[Bc7Scratch.FloatCount];
+                    Span<Vector256<int>> invariantScratch = stackalloc Vector256<int>[16];
+                    Span<byte> blockPixels = stackalloc byte[16 * 4];
+                    Span<int> pixelIndexMap = stackalloc int[16];
+
+                    Bc7Scratch scratch = new(byteScratch, intScratch, floatScratch, invariantScratch);
+                    Bc7BlockEncoder encoder = new(scratch, quick);
+
+                    int blockIndex;
+                    while ((blockIndex = Interlocked.Increment(ref nextIndex)) < totalBlocks)
+                    {
+                        int by = blockIndex / blocksX;
+                        int bx = blockIndex - (by * blocksX);
+                        FillBlock(srcSpan, width, height, bx, by, blockPixels, pixelIndexMap);
+                        encoder.EncodeBlock(blockPixels, dstSpan.Slice(blockIndex * BlockBytes, BlockBytes));
+                    }
+                });
+        }
+    }
+
     /// <summary>Gathers one 4x4 block, replicating edges exactly as DirectXTex's CompressBC does.</summary>
     private static void FillBlock(
         ReadOnlySpan<byte> source,
@@ -99,6 +227,17 @@ internal static class Bc7Encoder
         int y0 = by << 2;
         int pw = Math.Min(4, width - x0);
         int ph = Math.Min(4, height - y0);
+
+        if (pw == 4 && ph == 4)
+        {
+            int rowStride = width * 4;
+            int srcOffset = ((y0 * width) + x0) * 4;
+            source.Slice(srcOffset, 16).CopyTo(pixels[..16]);
+            source.Slice(srcOffset + rowStride, 16).CopyTo(pixels.Slice(16, 16));
+            source.Slice(srcOffset + (rowStride * 2), 16).CopyTo(pixels.Slice(32, 16));
+            source.Slice(srcOffset + (rowStride * 3), 16).CopyTo(pixels.Slice(48, 16));
+            return;
+        }
 
         for (int t = 0; t < 4; t++)
         {

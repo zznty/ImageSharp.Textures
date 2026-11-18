@@ -15,10 +15,18 @@ internal readonly struct BcEncodeOptions
     /// </summary>
     /// <param name="bc1AlphaThreshold">The alpha value below which BC1 uses the punch-through mode.</param>
     /// <param name="bc7Quality">The BC7 quality preset.</param>
-    internal BcEncodeOptions(float bc1AlphaThreshold, Bc7EncodingQuality bc7Quality)
+    /// <param name="maxDegreeOfParallelism">Maximum worker threads for CPU BC7 encoding.</param>
+    /// <param name="bc7HardwareEncoder">Optional hardware BC7 encoder backend.</param>
+    internal BcEncodeOptions(
+        float bc1AlphaThreshold,
+        Bc7EncodingQuality bc7Quality,
+        int maxDegreeOfParallelism = 1,
+        IBc7HardwareEncoder? bc7HardwareEncoder = null)
     {
         this.Bc1AlphaThreshold = bc1AlphaThreshold;
         this.Bc7Quality = bc7Quality;
+        this.MaxDegreeOfParallelism = maxDegreeOfParallelism;
+        this.Bc7HardwareEncoder = bc7HardwareEncoder;
     }
 
     /// <summary>
@@ -35,4 +43,14 @@ internal readonly struct BcEncodeOptions
     ///     Gets the quality preset used when encoding BC7.
     /// </summary>
     internal Bc7EncodingQuality Bc7Quality { get; }
+
+    /// <summary>
+    ///     Gets the maximum number of CPU threads used when encoding BC7 on the CPU (1 for single-threaded, -1 for all cores).
+    /// </summary>
+    internal int MaxDegreeOfParallelism { get; }
+
+    /// <summary>
+    ///     Gets the optional hardware BC7 encoder backend.
+    /// </summary>
+    internal IBc7HardwareEncoder? Bc7HardwareEncoder { get; }
 }

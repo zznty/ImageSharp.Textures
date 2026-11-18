@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ImageSharp.Textures.Vulkan</AssemblyName>
+    <AssemblyTitle>ImageSharp.Textures.Vulkan</AssemblyTitle>
+    <RootNamespace>ImageSharp.Textures.Vulkan</RootNamespace>
+    <PackageId>ImageSharp.Textures.Vulkan</PackageId>
+    <Description>Vulkan Compute GPU-accelerated BC7 encoder for ImageSharp.Textures.</Description>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\*.spv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.22.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ImageSharp.Textures\ImageSharp.Textures.csproj" />
+  </ItemGroup>
+
+</Project>

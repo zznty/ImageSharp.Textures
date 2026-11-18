@@ -35,4 +35,28 @@ public sealed class Ktx2EncodingOptions
     ///     The block is re-emitted byte for byte. Defaults to <see langword="true" />.
     /// </summary>
     public bool WriteKeyValueData { get; init; } = true;
+
+    /// <summary>
+    ///     Gets the BC7 encoder quality preset used when surfaces are converted to BC7.
+    ///     Defaults to <see cref="Bc7EncodingQuality.Default" />.
+    /// </summary>
+    public Bc7EncodingQuality Bc7Quality { get; init; } = Bc7EncodingQuality.Default;
+
+    /// <summary>
+    ///     Gets the normalized alpha cutoff in <c>[0, 1]</c> below which BC1 texels become transparent.
+    ///     Defaults to <c>0.5f</c>.
+    /// </summary>
+    public float Bc1AlphaThreshold { get; init; } = 0.5f;
+
+    /// <summary>
+    ///     Gets the maximum number of CPU threads used when encoding BC7 surfaces, or <c>-1</c> to use all available
+    ///     processors. Defaults to <c>1</c> (single-threaded).
+    /// </summary>
+    public int MaxDegreeOfParallelism { get; init; } = 1;
+
+    /// <summary>
+    ///     Gets an optional hardware or GPU compute BC7 encoder used when converting surfaces to BC7, or
+    ///     <see langword="null" /> to encode on the CPU.
+    /// </summary>
+    public IBc7HardwareEncoder? Bc7HardwareEncoder { get; init; }
 }

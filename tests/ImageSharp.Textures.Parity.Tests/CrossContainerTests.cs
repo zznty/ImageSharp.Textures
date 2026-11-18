@@ -178,7 +178,7 @@ public class CrossContainerTests
     public void VolumeSlicesSurviveDdsKtx2Dds(TexelFormat texelFormat)
     {
         using ParityWorkspace workspace = ParityWorkspace.Create($"cross-volume-{texelFormat}");
-        using Texture original = Build(texelFormat, Width, Height, 1, depth: 4);
+        using Texture original = Build(texelFormat, Width, Height, depth: 4);
 
         Assert.Equal(4, original.MipLevels[0].Depth);
         Assert.Equal(4, original.MipLevels[0].Surfaces.Count);

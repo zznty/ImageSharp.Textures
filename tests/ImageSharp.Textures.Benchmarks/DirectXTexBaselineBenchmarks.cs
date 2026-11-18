@@ -231,7 +231,8 @@ internal static class DirectXTexShim
         string path = ResolveLibraryPath();
         nint handle = NativeLibrary.Load(path);
 
-        Functions functions = new(
+        Functions functions;
+        functions = new Functions(
             Marshal.GetDelegateForFunctionPointer<BlockBytesFunc>(NativeLibrary.GetExport(handle, "dxtex_block_bytes")),
             Marshal.GetDelegateForFunctionPointer<DecodeFunc>(NativeLibrary.GetExport(handle, "dxtex_decode")),
             Marshal.GetDelegateForFunctionPointer<EncodeFunc>(NativeLibrary.GetExport(handle, "dxtex_encode")));

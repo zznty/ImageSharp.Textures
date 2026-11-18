@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ImageSharp.Textures\ImageSharp.Textures.csproj" />
+    <ProjectReference Include="..\..\src\ImageSharp.Textures.ILGPU\ImageSharp.Textures.ILGPU.csproj" />
+    <ProjectReference Include="..\..\src\ImageSharp.Textures.Vulkan\ImageSharp.Textures.Vulkan.csproj" />
   </ItemGroup>
 
 </Project>

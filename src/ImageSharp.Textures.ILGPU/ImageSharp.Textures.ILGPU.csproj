@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ImageSharp.Textures.ILGPU</AssemblyName>
+    <AssemblyTitle>ImageSharp.Textures.ILGPU</AssemblyTitle>
+    <RootNamespace>ImageSharp.Textures.ILGPU</RootNamespace>
+    <PackageId>ImageSharp.Textures.ILGPU</PackageId>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">https://github.com/zznty/ImageSharp.Textures</RepositoryUrl>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <PackageTags>Texture Surface DDS KTX KTX2 BC7 ILGPU GPU CUDA OpenCL ImageSharp</PackageTags>
+    <Description>ILGPU (CUDA and OpenCL) GPU-accelerated BC7 encoder for ImageSharp.Textures.</Description>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <NoWarn>$(NoWarn);CA1515</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ILGPU" Version="1.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ImageSharp.Textures\ImageSharp.Textures.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ImageSharp.Textures.Benchmarks" />
+    <InternalsVisibleTo Include="ImageSharp.Textures.Tests" />
+  </ItemGroup>
+
+</Project>

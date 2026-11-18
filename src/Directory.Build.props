@@ -26,8 +26,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ImageSharp.Textures.Benchmarks" />
+    <InternalsVisibleTo Include="ImageSharp.Textures.ILGPU" />
     <InternalsVisibleTo Include="ImageSharp.Textures.Parity.Tests" />
     <InternalsVisibleTo Include="ImageSharp.Textures.Tests" />
+    <InternalsVisibleTo Include="ImageSharp.Textures.Vulkan" />
   </ItemGroup>
 
 </Project>

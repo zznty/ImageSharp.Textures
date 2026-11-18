@@ -72,6 +72,23 @@ Both arms run in the same process on the same packed RGBA32 buffer; `[GlobalSetu
 | `Bc7_UNorm` | `Quick` | 120.2 ms | 2.31 s | — | 4.00 s | **0.58×** | 96 B |
 | `Bc7_UNorm` | `Default` | 4.17 s | 53.16 s | — | 107.54 s | **0.49×** | 960 B |
 
+### BC7 Multi-Threaded CPU & GPU Compute Comparison (`Bc7BackendComparisonBenchmarks`)
+
+Measured on AMD Ryzen 7 5800X (8 cores / 16 threads) + Intel Arc A770 Graphics (DG2, 16 GiB, Vulkan 1.4.346 Mesa 26.0.4 + OpenCL 3.0 NEO):
+
+| Backend | Implementation | `Quick` (64²) | `Quick` (256²) | `Quick` (1024²) | `Default` (64²) | `Default` (256²) | `Default` (1024²) | Speedup vs. ST CPU (1024² `Default`) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| **ST CPU** | `Bc7Encoder.Encode` | 21.77 ms | 108.83 ms | 2.20 s | 357.73 ms | 4.13 s | 54.31 s | 1.00× |
+| **MT CPU (16T)** | `Bc7Encoder.EncodeParallel` | 3.53 ms | 15.20 ms | 277.30 ms | 46.73 ms | 447.80 ms | 6.29 s | **8.64×** |
+| **Vulkan GPU** | `VulkanBc7Encoder` (`Silk.NET.Vulkan` + SPIR-V `BC7Encode.hlsl`) | 307.1 µs | 491.0 µs | 3.56 ms | 594.1 µs | 3.32 ms | 20.58 ms | **2,640×** |
+| **ILGPU GPU** | `IlgpuBc7Encoder` (OpenCL on Arc A770) | 611.3 µs | 682.2 µs | 2.06 ms | 879.9 µs | 2.33 ms | 18.02 ms | **3,013×** |
+| **ILGPU CPU** | `IlgpuBc7Encoder(preferCpu: true)` (CPU workgroup emulator) | 2.11 s | — | — | 8.33 s | — | — | 0.043× (at 64²) |
+
+- `Bc7Encoder.EncodeParallel` is **bit-for-bit identical** to `Bc7Encoder.Encode` and `texconv` CPU BC7 across all block modes and dimensions.
+- **`ImageSharp.Textures.ILGPU` (`IlgpuBc7Encoder`) is the recommended and published NuGet package for GPU-accelerated BC7 encoding**: it is written in 100% safe C# (`<AllowUnsafeBlocks>false</AllowUnsafeBlocks>`), runs across CUDA and OpenCL GPUs without external shader toolchains, and outperforms the raw Vulkan SPIR-V pipeline at `256²` and `1024²` (**18.02 ms** vs. **20.58 ms** at `1024² Default`, **3,013×** faster than ST CPU; **2.06 ms** vs. **3.56 ms** at `1024² Quick`, **1,064×** faster than ST CPU).
+- **Avoid ILGPU's CPU accelerator in production**: ILGPU's CPU backend emulates 64-thread GPU workgroups with barrier synchronization on the CPU (`2.11 s` at `64² Quick`, `8.33 s` at `64² Default`). `IlgpuBc7Encoder` therefore restricts its public constructor and `IlgpuBc7Encoder.TryCreate` to hardware GPU accelerators (`Cuda` and `OpenCL`), falling back to `Bc7Encoder.EncodeParallel` on the CPU when no GPU is present.
+- **`ImageSharp.Textures.Vulkan` (`VulkanBc7Encoder`)** executes the same DirectXTex `BC7Encode.hlsl` 3-pass compute pipeline via `Silk.NET.Vulkan` and precompiled SPIR-V shaders, producing **100% byte-for-byte identical** BC7 output to `IlgpuBc7Encoder` across all tested surfaces (including partial edge blocks). It is retained in the repository as an unpacked reference implementation (`<IsPackable>false</IsPackable>`) for native SPIR-V and NativeAOT scenarios.
+
 ---
 
 ## 3. Container I/O & Surface Interop (`TextureIoBenchmarks`)

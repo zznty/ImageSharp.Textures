@@ -44,4 +44,16 @@ public sealed class DdsEncodingOptions
     ///     punch-through mode.
     /// </summary>
     public float Bc1AlphaThreshold { get; init; } = 0.5f;
+
+    /// <summary>
+    ///     Gets the maximum number of CPU threads used when encoding BC7 on the CPU (1 for single-threaded, -1 for all cores).
+    /// </summary>
+    public int MaxDegreeOfParallelism { get; init; } = 1;
+
+    /// <summary>
+    ///     Gets the optional hardware BC7 encoder backend. When set and available, BC7 encoding runs on the
+    ///     hardware backend and falls back to the CPU encoder if <see cref="IBc7HardwareEncoder.TryEncode" /> returns
+    ///     <see langword="false" />.
+    /// </summary>
+    public IBc7HardwareEncoder? Bc7HardwareEncoder { get; init; }
 }

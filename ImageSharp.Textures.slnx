@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/ImageSharp.Textures/ImageSharp.Textures.csproj" />
+    <Project Path="src/ImageSharp.Textures.ILGPU/ImageSharp.Textures.ILGPU.csproj" />
+    <Project Path="src/ImageSharp.Textures.Vulkan/ImageSharp.Textures.Vulkan.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ImageSharp.Textures.Benchmarks/ImageSharp.Textures.Benchmarks.csproj" />

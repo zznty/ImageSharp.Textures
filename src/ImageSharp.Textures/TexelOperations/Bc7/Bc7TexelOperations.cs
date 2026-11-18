@@ -74,7 +74,8 @@ internal sealed class Bc7TexelOperations : BcTexelOperations<Bc7Decoder.Block>, 
         int length = checked(width * height * 4);
         Configuration configuration = source.Configuration;
         using IMemoryOwner<byte> owner = configuration.MemoryAllocator.Allocate<byte>(length);
-        Span<byte> rgba = owner.Memory.Span[..length];
+        Memory<byte> rgbaMemory = owner.Memory[..length];
+        Span<byte> rgba = rgbaMemory.Span;
 
         PixelOperations<TPixel> pixelOperations = PixelOperations<TPixel>.Instance;
         int rowBytes = width * 4;
@@ -84,6 +85,23 @@ internal sealed class Bc7TexelOperations : BcTexelOperations<Bc7Decoder.Block>, 
             ReadOnlySpan<TPixel> sourceRow = source.DangerousGetPixelRowMemory(y).Span;
             Span<byte> destinationRow = rgba.Slice(y * rowBytes, rowBytes);
             pixelOperations.ToRgba32Bytes(configuration, sourceRow, destinationRow, width);
+        }
+
+        if (options.Bc7HardwareEncoder is { } hardwareEncoder
+            && hardwareEncoder.TryEncode(rgba, destination, width, height, options.Bc7Quality))
+        {
+            return;
+        }
+
+        if (options.MaxDegreeOfParallelism != 1)
+        {
+            int encodedBytes = (int)required;
+            using IMemoryOwner<byte> destOwner = configuration.MemoryAllocator.Allocate<byte>(encodedBytes);
+            Memory<byte> destMemory = destOwner.Memory[..encodedBytes];
+            Bc7Encoder.EncodeParallel(rgbaMemory, destMemory, width, height, options.Bc7Quality,
+                options.MaxDegreeOfParallelism);
+            destMemory.Span.CopyTo(destination);
+            return;
         }
 
         Bc7Encoder.Encode(rgba, destination, width, height, options.Bc7Quality);

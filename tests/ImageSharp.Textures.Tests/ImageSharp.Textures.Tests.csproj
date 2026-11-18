@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\ImageSharp.Textures.ILGPU\ImageSharp.Textures.ILGPU.csproj" />
+    <ProjectReference Include="..\..\src\ImageSharp.Textures.Vulkan\ImageSharp.Textures.Vulkan.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

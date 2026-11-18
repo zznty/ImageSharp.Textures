@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using ImageSharp.Textures.Texels.BcCommon;
 
 namespace ImageSharp.Textures.Formats.Ktx;
 
@@ -43,10 +44,16 @@ internal sealed class KtxEncoderCore
         WriteHeader(stream, layout, internalFormat, keyValueData.Length);
         stream.Write(keyValueData);
 
+        BcEncodeOptions encodeOptions = new(
+            this.options.Bc1AlphaThreshold,
+            this.options.Bc7Quality,
+            this.options.MaxDegreeOfParallelism,
+            this.options.Bc7HardwareEncoder);
+
         for (int level = 0; level < layout.MipLevelCount; level++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteLevel(stream, texture, layout, level);
+            WriteLevel(stream, texture, layout, level, encodeOptions);
         }
     }
 
@@ -76,7 +83,12 @@ internal sealed class KtxEncoderCore
         WriteUInt32(stream, buffer, (uint)keyValueDataLength);
     }
 
-    private static void WriteLevel(Stream stream, Texture texture, TextureEncodingLayout layout, int level)
+    private static void WriteLevel(
+        Stream stream,
+        Texture texture,
+        TextureEncodingLayout layout,
+        int level,
+        BcEncodeOptions encodeOptions)
     {
         int width = layout.GetLevelWidth(level);
         int height = layout.GetLevelHeight(level);
@@ -115,7 +127,7 @@ internal sealed class KtxEncoderCore
                     scratch ??=
                         texture.Configuration.ImageSharpConfiguration.MemoryAllocator.Allocate<byte>(surfaceBytes);
                     Span<byte> destination = scratch.Memory.Span[..surfaceBytes];
-                    TextureSurfaceTranscoder.Write(surface, layout.TexelFormat, destination);
+                    TextureSurfaceTranscoder.Write(surface, layout.TexelFormat, destination, encodeOptions);
                     stream.Write(destination);
                 }
 
